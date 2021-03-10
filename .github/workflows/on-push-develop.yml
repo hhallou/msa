@@ -1,0 +1,67 @@
+# This workflow will build and push a new container image to Github Packages,
+# and then will deploy it to Elastic Kubernetes Service (EKS), when a release is created.
+#
+# To use this workflow, you will need to complete the following set-up steps:
+#
+# 1. Create an ACR repository to store your container images. 
+#    You can use ACR EE instance for more security and better performance.
+#    For instructions see https://www.alibabacloud.com/help/doc-detail/142168.htm
+#
+# 2. Create an ACK cluster to run your containerized application.
+#    You can use ACK Pro cluster for more security and better performance.
+#    For instructions see https://www.alibabacloud.com/help/doc-detail/95108.htm
+#
+# 3. Store your AccessKey pair in GitHub Actions secrets named `ACCESS_KEY_ID` and `ACCESS_KEY_SECRET`.
+#    For instructions on setting up secrets see: https://developer.github.com/actions/managing-workflows/storing-secrets/
+#
+# 4. Change the values for the REGION_ID, REGISTRY, NAMESPACE, IMAGE, ACK_CLUSTER_ID, and ACK_DEPLOYMENT_NAME. 
+#
+
+name: Build and Deploy to EKS
+
+# @Todo git workflow
+on:
+  push:
+    branches:
+    - v1
+
+# Environment variables available to all jobs and steps in this workflow.
+env: 
+  REGISTRY: docker.pkg.github.com
+  NAMESPACE: teksial
+  IMAGE: organizations/organizations
+  REGION_ID: eu-west-3
+  DOCKER_STAGING_PROD: prod
+  CHART_REPOSITORY: teksial/charts
+  CHART_REPOSITORY_BRANCH: develop
+  
+  # Push Another Repo
+  # dmnemec/copy_file_to_another_repo_action
+  SOURCE_FILE: charts/organizations/values.yaml
+  DESTINATION_REPO: teksial/charts
+  DESTINATION_FOLDER: organizations
+  DESTINATION_BRANCH: develop
+  USER_EMAIL: 'hicham.hallou@gmail.com'
+  USER_NAME: 'Hicham Hallou'
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+        
+    # 2.1 Semver strategy
+    - name: Bump version and push tag
+      id: tag
+      uses: anothrNick/github-tag-action@1.26.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        INITIAL_VERSION: 1.0.0
+        RELEASE_BRANCHES: v1
+        TAG_CONTEXT: 'branch'
+        
+
+    
